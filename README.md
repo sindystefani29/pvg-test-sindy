@@ -2,14 +2,12 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
 
 ## Getting Started
 
-First, run the development server:
+- rename file [`.env.local.example`] into [`.env.local`] and set your unsplash API token
+
+- run the development server:
 
 ```bash
 npm install
-```
-
-then,
-```bash
 npm run dev
 ```
 
