@@ -1,0 +1,18 @@
+.container {
+    padding-top: 70px;
+    padding-bottom: 70px;
+}
+
+.imageModal {
+    width: 100%;
+    max-height: 500px;
+    object-fit: cover;
+}
+
+.closeButton {
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 28px;
+    padding: 0;
+}
