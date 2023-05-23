@@ -2,7 +2,7 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
 
 ## Getting Started
 
-- rename file [`.env.local.example`] into [`.env.local`] and set your unsplash API token
+- copy file [`.env.local.example`] with name [`.env.local`] and set your unsplash API token
 
 - run the development server:
 
