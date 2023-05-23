@@ -8,24 +8,14 @@ export enum FetchStatus {
     Init
 }
 
-export enum FetchMethod {
-    GET
-}
-
-export interface OptionTypes {
-    method: FetchMethod
-    variables: SearchParams
-    onError: () => void
-}
-
 export interface UnsplashResponseType {
     status: FetchStatus,
     data: Partial<Photos>,
     code: number
 }
 
-export interface ReducerActionType {
-    type: FetchMethod,
+export interface OptionTypes {
+    accessKey: string
     variables: SearchParams,
     onError: () => void
 }

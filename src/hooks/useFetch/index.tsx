@@ -1,9 +1,12 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState } from "react"
+import { createApi } from "unsplash-js";
 import { ApiResponse } from "unsplash-js/dist/helpers/response"
-import api from "@/route/api"
-import { FetcherType, FetchStatus, OptionTypes, ReducerActionType, UnsplashResponseType } from "./types"
+
+import { FetcherType, FetchStatus, OptionTypes, UnsplashResponseType } from "./types"
+
+const api = (accessKey: string) => createApi({ accessKey });
 
 const DEFAULT_FETCH_STATE = {
     status: FetchStatus.Init,
@@ -11,13 +14,14 @@ const DEFAULT_FETCH_STATE = {
     data: {}
 }
 
-type fetcherFuncType = (variables: OptionTypes['variables'], onError: OptionTypes['onError']) => Promise<FetcherType>
+type fetcherFuncType = (options: OptionTypes) => Promise<FetcherType>
+type fetchMethodFuncType = (action: OptionTypes) => Promise<UnsplashResponseType>
 
-const fetcher: fetcherFuncType = async (variables, onError) => {
+const fetcher: fetcherFuncType = async ({ variables, onError, accessKey }) => {
     let res
 
     try {
-        res = await api.search.getPhotos(variables)
+        res = await api(accessKey).search.getPhotos(variables)
     } catch (err) {
         onError()
         console.error(err)
@@ -37,13 +41,13 @@ const fetcher: fetcherFuncType = async (variables, onError) => {
     }
 }
 
-const fetchMethod: (action: ReducerActionType) => Promise<UnsplashResponseType> = async (action: ReducerActionType) => {
+const fetchMethod: fetchMethodFuncType = async (options: OptionTypes) => {
     let response: FetcherType = {
         isSuccessful: false,
         statusCode: 0
     }
 
-    response = await fetcher(action.variables, action.onError)
+    response = await fetcher(options)
 
     return {
         status: response.isSuccessful ? FetchStatus.Success : FetchStatus.Error,
@@ -64,7 +68,7 @@ export default function useFetch(options: OptionTypes): [UnsplashResponseType, (
             status: FetchStatus.Loading
         })
 
-        const tmp = await fetchMethod({ type: options.method, variables, onError: options.onError })
+        const tmp = await fetchMethod(options)
 
         setData(tmp)
     }, [variables, options])

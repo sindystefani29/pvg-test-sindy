@@ -12,7 +12,7 @@ import Modal from '@mui/material/Modal';
 import IconButton from '@mui/material/IconButton';
 import styles from '@/route/styles/Home.module.css'
 
-import { FetchMethod, FetchStatus } from '@/route/hooks/useFetch/types';
+import { FetchStatus } from '@/route/hooks/useFetch/types';
 
 import useFetch from '@/route/hooks/useFetch';
 import useDebounce from "@/route/hooks/useDebounce";
@@ -35,7 +35,7 @@ const MODAL_STYLE = {
   alignItems: 'end'
 };
 
-export default function Home() {
+export default function Home({ accessKey }: { accessKey: string }) {
   const [inputSearch, setInputSearch] = useState('')
   const [modalOpen, setModalOpen] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -51,7 +51,7 @@ export default function Home() {
   };
 
   const [response] = useFetch({
-    method: FetchMethod.GET,
+    accessKey,
     variables: {
       query: debounceKeyword || "cat"
     },
@@ -126,4 +126,12 @@ export default function Home() {
       />
     </>
   )
+}
+
+export async function getStaticProps() {
+  return {
+    props: {
+      accessKey: process.env.UNSPLASH_TOKEN,
+    },
+  };
 }
