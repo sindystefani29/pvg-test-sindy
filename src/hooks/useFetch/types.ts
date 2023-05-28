@@ -1,5 +1,8 @@
 import { SearchParams } from "unsplash-js/dist/methods/search"
 import { Photos } from "unsplash-js/dist/methods/search/types/response"
+import { Basic } from "unsplash-js/dist/methods/photos/types"
+
+export type DataListType = Basic
 
 export enum FetchStatus {
     Error,

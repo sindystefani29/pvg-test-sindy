@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { createApi } from "unsplash-js";
 import { ApiResponse } from "unsplash-js/dist/helpers/response"
 
+import deepCompare from "@/route/helpers/deepCompare";
 import { FetcherType, FetchStatus, OptionTypes, UnsplashResponseType } from "./types"
 
 const api = (accessKey: string) => createApi({ accessKey });
@@ -59,7 +60,7 @@ const fetchMethod: fetchMethodFuncType = async (options: OptionTypes) => {
 export default function useFetch(options: OptionTypes): [UnsplashResponseType, () => Promise<void>] {
     const variables = options.variables
 
-    const cachedQuery = useRef('')
+    const cachedVariables = useRef<Partial<OptionTypes['variables']>>({})
     const [data, setData] = useState(DEFAULT_FETCH_STATE)
 
     const doFetch = useCallback(async () => {
@@ -71,14 +72,15 @@ export default function useFetch(options: OptionTypes): [UnsplashResponseType, (
         const tmp = await fetchMethod(options)
 
         setData(tmp)
-    }, [variables, options])
+    }, [options])
 
     useEffect(() => {
-        if (cachedQuery.current !== variables.query) {
-            cachedQuery.current = variables.query
+        const isSameValues = deepCompare(cachedVariables.current, variables)
+        if (!isSameValues) {
+            cachedVariables.current = variables
             doFetch()
         }
-    }, [variables.query, cachedQuery.current])
+    }, [variables.query, variables.page, cachedVariables.current])
 
     return [data, doFetch]
 }

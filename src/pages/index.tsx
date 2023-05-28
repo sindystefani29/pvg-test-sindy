@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
@@ -10,9 +10,10 @@ import Grid from '@mui/material/Grid';
 import CircularProgress from '@mui/material/CircularProgress';
 import Modal from '@mui/material/Modal';
 import IconButton from '@mui/material/IconButton';
+import Button from '@mui/material/Button';
 import styles from '@/route/styles/Home.module.css'
 
-import { FetchStatus } from '@/route/hooks/useFetch/types';
+import { DataListType, FetchStatus } from '@/route/hooks/useFetch/types';
 
 import useFetch from '@/route/hooks/useFetch';
 import useDebounce from "@/route/hooks/useDebounce";
@@ -35,7 +36,16 @@ const MODAL_STYLE = {
   alignItems: 'end'
 };
 
+interface DataType {
+  page: number
+  list: DataListType[]
+}
+
 export default function Home({ accessKey }: { accessKey: string }) {
+  const [data, setData] = useState<DataType>({
+    page: 1,
+    list: []
+  })
   const [inputSearch, setInputSearch] = useState('')
   const [modalOpen, setModalOpen] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -53,13 +63,18 @@ export default function Home({ accessKey }: { accessKey: string }) {
   const [response] = useFetch({
     accessKey,
     variables: {
-      query: debounceKeyword || "cat"
+      query: debounceKeyword || "cat",
+      page: data.page
     },
     onError: handleToggleSnackbar
   })
 
   const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInputSearch(e.target.value)
+    setData(prev => ({
+      ...prev,
+      page: 1
+    }))
   }
 
   const handleToggleModal = () => {
@@ -70,6 +85,31 @@ export default function Home({ accessKey }: { accessKey: string }) {
     setSelectedImage(val)
     handleToggleModal()
   }
+
+  const handleLoadMore = () => {
+    setData(prev => ({
+      ...prev,
+      page: prev.page + 1
+    }))
+  }
+
+  useEffect(() => {
+    if (response.data.results) {
+      setData(prev => ({
+        ...prev,
+        list: [...prev.list, ...(response.data.results || [])]
+      }))
+    }
+  }, [response.data.results])
+
+  useEffect(() => {
+    if (response.status === FetchStatus.Loading && data.page === 1) {
+      setData(prev => ({
+        ...prev,
+        list: []
+      }))
+    }
+  }, [response.status, data.page])
 
   return (
     <>
@@ -87,22 +127,32 @@ export default function Home({ accessKey }: { accessKey: string }) {
           <TextField id="outlined-search" label="Search here" type="search" fullWidth onChange={handleInput} />
           <Box>
             <Grid container spacing={2} marginTop={2}>
-              {response.status === FetchStatus.Loading ?
+              {data.list.map(item => (
+                <Card
+                  key={item.id}
+                  author={item.user.name}
+                  title={item.alt_description}
+                  image={item.urls.regular}
+                  openImage={handleImageClick}
+                />
+              ))}
+              {response.status === FetchStatus.Loading && (
                 <Grid item xs={12} display="flex">
                   <CircularProgress style={{ margin: "auto" }} />
                 </Grid>
-                :
-                response.data.results?.map(item => (
-                  <Card
-                    key={item.id}
-                    author={item.user.name}
-                    title={item.alt_description}
-                    image={item.urls.regular}
-                    openImage={handleImageClick}
-                  />
-                ))}
+              )}
             </Grid>
           </Box>
+          {Boolean(response.data.total && (response.data.total > data.list.length)) && (
+            <Button
+              variant="outlined"
+              fullWidth
+              style={{ marginTop: 15 }}
+              onClick={handleLoadMore}
+            >
+              Load more
+            </Button>
+          )}
         </Container>
       </div>
       <Modal
@@ -128,7 +178,7 @@ export default function Home({ accessKey }: { accessKey: string }) {
   )
 }
 
-export async function getStaticProps() {
+export function getStaticProps() {
   return {
     props: {
       accessKey: process.env.UNSPLASH_TOKEN,
